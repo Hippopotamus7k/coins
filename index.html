@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Добавить карты через QR</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f9f9f9;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+    button {
+      background: #0088cc;
+      color: white;
+      cursor: pointer;
+    }
+    button:disabled {
+      background: #ccc;
+    }
+    .step { display: none; }
+    .active { display: block; }
+    .qr-container {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .qr-container img {
+      max-width: 300px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+    .error { color: red; }
+    .success { color: green; }
+  </style>
+</head>
+<body>
+  <h1>Добавить карты через QR</h1>
+
+  <!-- Шаг 1: Ввод Telegram ID -->
+  <div id="step1" class="step active">
+    <p>Введите ваш <strong>Telegram ID</strong> (узнать можно командой <code>/id</code> в боте):</p>
+    <input type="text" id="telegramId" placeholder="Например: 123456789" />
+    <button onclick="startAuth()">Продолжить</button>
+    <p class="error" id="err1"></p>
+  </div>
+
+  <!-- Шаг 2: Ожидание кода из Telegram -->
+  <div id="step2" class="step">
+    <p>Откройте Telegram и перейдите по ссылке ниже.</p>
+    <p>Бот пришлёт вам <strong>код подтверждения</strong>.</p>
+    <p><a id="tgLink" target="_blank" style="color: #0088cc;">👉 Открыть Telegram</a></p>
+    <p>После получения кода введите его здесь:</p>
+    <input type="text" id="authCode" placeholder="Код из Telegram" />
+    <button onclick="verifyCode()">Подтвердить</button>
+    <p class="error" id="err2"></p>
+  </div>
+
+  <!-- Шаг 3: Генерация QR -->
+  <div id="step3" class="step">
+    <p>Введите номера карт через запятую (например: <code>1,5,12,25</code>):</p>
+    <input type="text" id="cardNumbers" placeholder="1,2,3..." />
+    <button onclick="generateQr()">Создать QR</button>
+    <p class="error" id="err3"></p>
+    <div class="qr-container" id="qrResult"></div>
+  </div>
+
+  <script>
+    const BOT_USERNAME = "your_bot_username"; // ← ЗАМЕНИТЕ НА ИМЯ ВАШЕГО БОТА!
+    let userId = null;
+
+    function showError(id, msg) {
+      document.getElementById(id).textContent = msg;
+    }
+
+    function clearError(id) {
+      document.getElementById(id).textContent = "";
+    }
+
+    function showStep(stepNum) {
+      document.querySelectorAll(".step").forEach(el => el.classList.remove("active"));
+      document.getElementById(`step${stepNum}`).classList.add("active");
+    }
+
+    async function startAuth() {
+      const input = document.getElementById("telegramId").value.trim();
+      clearError("err1");
+      if (!/^\d+$/.test(input)) {
+        showError("err1", "ID должен быть числом!");
+        return;
+      }
+      userId = input;
+      const link = `https://t.me/${BOT_USERNAME}?start=site_auth_${userId}`;
+      document.getElementById("tgLink").href = link;
+      showStep(2);
+    }
+
+    async function verifyCode() {
+      const code = document.getElementById("authCode").value.trim().toUpperCase();
+      clearError("err2");
+      if (!code || code.length < 4) {
+        showError("err2", "Введите код из Telegram.");
+        return;
+      }
+
+      // ⚠️ Здесь вы ДОЛЖНЫ вызвать ваш приватный API-эндпоинт!
+      // Пример: https://your-fastapi.onrender.com/verify_site_auth
+      try {
+        const res = await fetch("https://your-fastapi.onrender.com/verify_site_auth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id: userId, temp_code: code })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          showStep(3);
+        } else {
+          showError("err2", data.error || "Неверный код или срок действия истёк.");
+        }
+      } catch (e) {
+        console.error(e);
+        showError("err2", "Ошибка связи с сервером. Попробуйте позже.");
+      }
+    }
+
+    async function generateQr() {
+      const nums = document.getElementById("cardNumbers").value.trim();
+      clearError("err3");
+      if (!nums) {
+        showError("err3", "Введите номера карт.");
+        return;
+      }
+
+      // Отправляем запрос на ваш FastAPI-сервер
+      try {
+        const res = await fetch("https://your-fastapi.onrender.com/generate_qr", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id: userId, card_numbers: nums })
+        });
+        const data = await res.json();
+        if (data.qr_url) {
+          const qrDiv = document.getElementById("qrResult");
+          qrDiv.innerHTML = `
+            <p class="success">✅ QR-код готов! Отсканируйте его в Telegram.</p>
+            <img src="${data.qr_url}" alt="QR Code" />
+            <p><a href="${data.deep_link}" target="_blank">Или перейдите по ссылке</a></p>
+          `;
+        } else {
+          showError("err3", data.error || "Не удалось создать QR.");
+        }
+      } catch (e) {
+        console.error(e);
+        showError("err3", "Ошибка генерации QR.");
+      }
+    }
+  </script>
+</body>
+</html>
