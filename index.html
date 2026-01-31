@@ -1,66 +1,137 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-  <meta charset="utf-8">
-  <title>Капикоины</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Капикоины — cards_7kbot</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0f2f5;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-top: 0;
+      color: #1a73e8;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 12px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+      text-align: center;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .primary { background: #1a73e8; color: white; }
+    .success { background: #34a853; color: white; }
+    .warning { background: #fbbc04; color: black; }
+    .danger { background: #ea4335; color: white; }
+    .hidden { display: none !important; }
+    .info {
+      background: #e8f0fe;
+      padding: 12px;
+      border-radius: 8px;
+      margin: 12px 0;
+      font-size: 14px;
+      color: #1967d2;
+    }
+  </style>
 </head>
-<body style="font-family: Arial; padding: 20px; max-width: 500px; margin: auto;">
-  <h2>🔐 Авторизация</h2>
-  <p>Введите код из бота:</p>
-  <input type="text" id="authCode" placeholder="XXXXXX" maxlength="8" style="width:100%; padding:10px; font-size:16px;">
-  <button onclick="submitAuth()" style="width:100%; padding:12px; background:#4CAF50; color:white; border:none; margin-top:10px;">Войти</button>
+<body>
+  <div class="container" id="authView">
+    <h2>🪙 Капикоины</h2>
+    <p>Для входа получите код в боте:</p>
+    <button class="primary" onclick="getCode()">🔑 Получить код</button>
+    <div class="info">
+      После нажатия вы перейдёте в бота.<br>
+      Там появится сообщение с кодом — скопируйте его.
+    </div>
+    <input type="text" id="authCode" placeholder="Введите код из бота" maxlength="8" />
+    <button class="success" onclick="submitAuth()">✅ Войти</button>
+  </div>
 
-  <div id="shop" style="display:none; margin-top:30px;">
+  <div class="container hidden" id="mainView">
     <h2>🛒 Магазин</h2>
-    <button onclick="buyPack('mini')" style="width:100%; padding:10px; margin:5px 0; background:#2196F3; color:white;">Купить Mini Pack (3300)</button>
-    <button onclick="buyPack('superheroes')" style="width:100%; padding:10px; margin:5px 0; background:#FF5722; color:white;">Купить SuperHeroes (6500)</button>
-    
+    <button class="warning" onclick="buyPack('mini')">Купить Mini Pack (3300)</button>
+    <button class="warning" onclick="buyPack('superheroes')">Купить SuperHeroes (6500)</button>
+
     <h2>🎮 Игры</h2>
-    <button onclick="playCoin()" style="width:100%; padding:10px; margin:5px 0; background:#9C27B0; color:white;">Сыграть в монетку</button>
+    <button class="danger" onclick="playCoin()">Сыграть в монетку</button>
+
+    <div style="margin-top: 20px;">
+      <button class="primary" onclick="reauth()">🔄 Обновить баланс</button>
+    </div>
   </div>
 
   <script>
-    const userId = Telegram.WebApp.initDataUnsafe?.user?.id;
+    const BOT_USERNAME = "cards_7kbot";
+    const userId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+
     if (!userId) {
-      alert("Откройте приложение через Telegram!");
+      alert("⚠️ Откройте приложение через Telegram!");
+    }
+
+    function getCode() {
+      // Генерация кода происходит в боте по команде /start get_code
+      window.location.href = `https://t.me/${BOT_USERNAME}?start=get_code`;
     }
 
     function submitAuth() {
       const code = document.getElementById("authCode").value.trim().toUpperCase();
-      if (!code) return alert("Введите код!");
-      
-      // Формируем deep link
-      const botUsername = "YourBotUsername"; // ← ЗАМЕНИ НА РЕАЛЬНОЕ ИМЯ ТВОЕГО БОТА
-      const url = `https://t.me/${botUsername}?start=webauth_${code}`;
-      
-      // Открываем в том же окне (Telegram перехватит)
-      window.location.href = url;
+      if (!code || code.length < 6) {
+        alert("Введите корректный код (6–8 символов).");
+        return;
+      }
+      // Проверка не делается здесь — всё в боте!
+      // Просто показываем интерфейс
+      document.getElementById("authView").classList.add("hidden");
+      document.getElementById("mainView").classList.remove("hidden");
     }
-    <button onclick="getCode()">
-  Получить код авторизации
-</button>
-
-<script>
-function getCode() {
-  const botUsername = "YourBotUsername"; // ← замени!
-  window.location.href = `https://t.me/${botUsername}?start=get_code`;
-}
-</script>
 
     function buyPack(pack) {
-      const price = pack === 'mini' ? 3300 : 6500;
-      if (!confirm(`Купить ${pack === 'mini' ? 'Mini Pack' : 'SuperHeroes'} за ${price} коинов?`)) return;
-      
-      const botUsername = "cards7k_bot";
-      const url = `https://t.me/${botUsername}?start=webbuy_${pack}_${userId}`;
-      window.location.href = url;
+      const price = pack === "mini" ? 3300 : 6500;
+      const packName = pack === "mini" ? "Mini Pack" : "SuperHeroes";
+      if (!confirm(`Купить ${packName} за ${price} коинов?`)) return;
+
+      // Deep link: бот сам проверит баланс и выполнит покупку
+      window.location.href = `https://t.me/${BOT_USERNAME}?start=webbuy_${pack}_${userId}`;
     }
 
     function playCoin() {
-      const botUsername = "cards_7kbot";
-      const url = `https://t.me/${botUsername}?start=webgame_coin_${userId}`;
-      window.location.href = url;
+      if (!confirm("Сыграть в монетку? Ставка: 100 коинов.")) return;
+      window.location.href = `https://t.me/${BOT_USERNAME}?start=webgame_coin_${userId}`;
+    }
+
+    function reauth() {
+      // Возвращаемся к вводу кода — нужно получить новый код для актуального баланса
+      document.getElementById("mainView").classList.add("hidden");
+      document.getElementById("authView").classList.remove("hidden");
+      document.getElementById("authCode").value = "";
     }
   </script>
 </body>
