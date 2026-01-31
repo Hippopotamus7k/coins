@@ -37,12 +37,22 @@
       // Открываем в том же окне (Telegram перехватит)
       window.location.href = url;
     }
+    <button onclick="getCode()">
+  Получить код авторизации
+</button>
+
+<script>
+function getCode() {
+  const botUsername = "YourBotUsername"; // ← замени!
+  window.location.href = `https://t.me/${botUsername}?start=get_code`;
+}
+</script>
 
     function buyPack(pack) {
       const price = pack === 'mini' ? 3300 : 6500;
       if (!confirm(`Купить ${pack === 'mini' ? 'Mini Pack' : 'SuperHeroes'} за ${price} коинов?`)) return;
       
-      const botUsername = "caeds7k_bot";
+      const botUsername = "cards7k_bot";
       const url = `https://t.me/${botUsername}?start=webbuy_${pack}_${userId}`;
       window.location.href = url;
     }
