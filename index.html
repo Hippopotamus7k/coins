@@ -27,6 +27,14 @@
       margin-top: 0;
       color: #1a73e8;
     }
+    .info-box {
+      background: #e8f0fe;
+      padding: 12px;
+      border-radius: 8px;
+      margin: 12px 0;
+      font-size: 14px;
+      color: #1967d2;
+    }
     input {
       width: 100%;
       padding: 12px;
@@ -52,30 +60,20 @@
     .warning { background: #fbbc04; color: black; }
     .danger { background: #ea4335; color: white; }
     .hidden { display: none !important; }
-    .info {
-      background: #e8f0fe;
-      padding: 12px;
-      border-radius: 8px;
-      margin: 12px 0;
-      font-size: 14px;
-      color: #1967d2;
-    }
   </style>
 </head>
 <body>
   <div class="container" id="authView">
     <h2>🪙 Капикоины</h2>
-    <p>Для входа получите код в боте:</p>
+    <div class="info-box" id="userInfo"></div>
+    <p>Получите код в боте:</p>
     <button class="primary" onclick="getCode()">🔑 Получить код</button>
-    <div class="info">
-      После нажатия вы перейдёте в бота.<br>
-      Там появится сообщение с кодом — скопируйте его.
-    </div>
     <input type="text" id="authCode" placeholder="Введите код из бота" maxlength="8" />
     <button class="success" onclick="submitAuth()">✅ Войти</button>
   </div>
 
   <div class="container hidden" id="mainView">
+    <div class="info-box" id="balanceInfo">Баланс: ???</div>
     <h2>🛒 Магазин</h2>
     <button class="warning" onclick="buyPack('mini')">Купить Mini Pack (3300)</button>
     <button class="warning" onclick="buyPack('superheroes')">Купить SuperHeroes (6500)</button>
@@ -90,14 +88,17 @@
 
   <script>
     const BOT_USERNAME = "cards_7kbot";
-    const userId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+    const initData = window.Telegram?.WebApp?.initDataUnsafe;
+    const userId = initData?.user?.id;
 
     if (!userId) {
       alert("⚠️ Откройте приложение через Telegram!");
     }
 
+    // Показываем ID сразу
+    document.getElementById("userInfo").innerHTML = `Ваш ID: <b>${userId}</b>`;
+
     function getCode() {
-      // Генерация кода происходит в боте по команде /start get_code
       window.location.href = `https://t.me/${BOT_USERNAME}?start=get_code`;
     }
 
@@ -107,8 +108,8 @@
         alert("Введите корректный код (6–8 символов).");
         return;
       }
-      // Проверка не делается здесь — всё в боте!
-      // Просто показываем интерфейс
+      // Баланс неизвестен — покажем позже через бота
+      document.getElementById("balanceInfo").innerText = "Баланс: (обновляется в боте)";
       document.getElementById("authView").classList.add("hidden");
       document.getElementById("mainView").classList.remove("hidden");
     }
@@ -117,18 +118,21 @@
       const price = pack === "mini" ? 3300 : 6500;
       const packName = pack === "mini" ? "Mini Pack" : "SuperHeroes";
       if (!confirm(`Купить ${packName} за ${price} коинов?`)) return;
-
-      // Deep link: бот сам проверит баланс и выполнит покупку
       window.location.href = `https://t.me/${BOT_USERNAME}?start=webbuy_${pack}_${userId}`;
     }
 
     function playCoin() {
-      if (!confirm("Сыграть в монетку? Ставка: 100 коинов.")) return;
-      window.location.href = `https://t.me/${BOT_USERNAME}?start=webgame_coin_${userId}`;
+      const choice = prompt("Выберите: орел или решка?");
+      if (!choice) return;
+      const cleanChoice = choice.toLowerCase().trim();
+      if (cleanChoice !== "орел" && cleanChoice !== "решка") {
+        alert("Введите 'орел' или 'решка'");
+        return;
+      }
+      window.location.href = `https://t.me/${BOT_USERNAME}?start=webgame_coin_${cleanChoice}_${userId}`;
     }
 
     function reauth() {
-      // Возвращаемся к вводу кода — нужно получить новый код для актуального баланса
       document.getElementById("mainView").classList.add("hidden");
       document.getElementById("authView").classList.remove("hidden");
       document.getElementById("authCode").value = "";
