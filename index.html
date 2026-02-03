@@ -1,142 +1,19 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Капикоины — cards_7kbot</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #f0f2f5;
-      margin: 0;
-      padding: 20px;
-      display: flex;
-      justify-content: center;
-    }
-    .container {
-      background: white;
-      border-radius: 16px;
-      padding: 20px;
-      width: 100%;
-      max-width: 400px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    h2 {
-      text-align: center;
-      margin-top: 0;
-      color: #1a73e8;
-    }
-    .info-box {
-      background: #e8f0fe;
-      padding: 12px;
-      border-radius: 8px;
-      margin: 12px 0;
-      font-size: 14px;
-      color: #1967d2;
-    }
-    input {
-      width: 100%;
-      padding: 12px;
-      margin: 12px 0;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 16px;
-      text-align: center;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-    }
-    button {
-      width: 100%;
-      padding: 12px;
-      margin: 8px 0;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    .primary { background: #1a73e8; color: white; }
-    .success { background: #34a853; color: white; }
-    .warning { background: #fbbc04; color: black; }
-    .danger { background: #ea4335; color: white; }
-    .hidden { display: none !important; }
-  </style>
+  <meta charset="utf-8">
+  <title>Скачивание...</title>
 </head>
 <body>
-  <div class="container" id="authView">
-    <h2>🪙 Капикоины</h2>
-    <div class="info-box" id="userInfo"></div>
-    <p>Получите код в боте:</p>
-    <button class="primary" onclick="getCode()">🔑 Получить код</button>
-    <input type="text" id="authCode" placeholder="Введите код из бота" maxlength="8" />
-    <button class="success" onclick="submitAuth()">✅ Войти</button>
-  </div>
-
-  <div class="container hidden" id="mainView">
-    <div class="info-box" id="balanceInfo">Баланс: ???</div>
-    <h2>🛒 Магазин</h2>
-    <button class="warning" onclick="buyPack('mini')">Купить Mini Pack (3300)</button>
-    <button class="warning" onclick="buyPack('superheroes')">Купить SuperHeroes (6500)</button>
-
-    <h2>🎮 Игры</h2>
-    <button class="danger" onclick="playCoin()">Сыграть в монетку</button>
-
-    <div style="margin-top: 20px;">
-      <button class="primary" onclick="reauth()">🔄 Обновить баланс</button>
-    </div>
-  </div>
-
+  <p>Если скачивание не началось, нажмите <a href="myfile.pdf" download>здесь</a>.</p>
   <script>
-    const BOT_USERNAME = "cards_7kbot";
-    const initData = window.Telegram?.WebApp?.initDataUnsafe;
-    const userId = initData?.user?.id;
-
-    if (!userId) {
-      alert("⚠️ Откройте приложение через Telegram!");
-    }
-
-    // Показываем ID сразу
-    document.getElementById("userInfo").innerHTML = `Ваш ID: <b>${userId}</b>`;
-
-    function getCode() {
-      window.location.href = `https://t.me/${BOT_USERNAME}?start=get_code`;
-    }
-
-    function submitAuth() {
-      const code = document.getElementById("authCode").value.trim().toUpperCase();
-      if (!code || code.length < 6) {
-        alert("Введите корректный код (6–8 символов).");
-        return;
-      }
-      // Баланс неизвестен — покажем позже через бота
-      document.getElementById("balanceInfo").innerText = "Баланс: (обновляется в боте)";
-      document.getElementById("authView").classList.add("hidden");
-      document.getElementById("mainView").classList.remove("hidden");
-    }
-
-    function buyPack(pack) {
-      const price = pack === "mini" ? 3300 : 6500;
-      const packName = pack === "mini" ? "Mini Pack" : "SuperHeroes";
-      if (!confirm(`Купить ${packName} за ${price} коинов?`)) return;
-      window.location.href = `https://t.me/${BOT_USERNAME}?start=webbuy_${pack}_${userId}`;
-    }
-
-    function playCoin() {
-      const choice = prompt("Выберите: орел или решка?");
-      if (!choice) return;
-      const cleanChoice = choice.toLowerCase().trim();
-      if (cleanChoice !== "орел" && cleanChoice !== "решка") {
-        alert("Введите 'орел' или 'решка'");
-        return;
-      }
-      window.location.href = `https://t.me/${BOT_USERNAME}?start=webgame_coin_${cleanChoice}_${userId}`;
-    }
-
-    function reauth() {
-      document.getElementById("mainView").classList.add("hidden");
-      document.getElementById("authView").classList.remove("hidden");
-      document.getElementById("authCode").value = "";
-    }
+    // Автоматически кликаем по скрытой ссылке
+    const link = document.createElement('a');
+    link.href = 'myfile.pdf';
+    link.download = 'myfile.pdf'; // имя файла при скачивании
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   </script>
 </body>
 </html>
